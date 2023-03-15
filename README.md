@@ -1,2 +1,4 @@
+Project contributors: Joshua Land and Trung Nguyen
+
 # mario
-Mario clone for cpsc 386
+Brand new 2d platforming game for cpsc 386
