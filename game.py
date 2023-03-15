@@ -16,6 +16,7 @@ import sys
 # hand crafted imports
 from settings import Settings
 from vector import Vector
+from spriteSheet import SpriteSheet
 
 
 class Game():
@@ -27,6 +28,7 @@ class Game():
         self.running = True
         # helps limit frames per second
         self.clock = pg.time.Clock()
+        self.mario = SpriteSheet("assests/characters/mario/mario.png")
 
 
     def check_events(self):
@@ -39,7 +41,7 @@ class Game():
             if event.type == pg.QUIT:
                 # if you got here its time to shut down
                 self.game_over()
-                
+              
 
     def game_over(self):
         # run shutdown animation
@@ -47,17 +49,20 @@ class Game():
         self.running = False
         pg.quit()
         sys.exit()
-
     def draw(self):
-        self.screen.fill((255, 255, 255))
+        # this is where we will blit stuff
+        self.screen.fill((255, 0, 255))
+        self.screen.blit(self.mario.get_image(width=30, height=15), (0,0))
         pg.display.flip()
 
     def play(self):
         # Main loop for the game happens here, for now
         while self.running:
+            # check events for quit
             self.check_events()
-            print(self.clock.get_fps())
+            if self.settings.show_fps: print(self.clock.get_fps())
             self.draw()
+            pg.display.update()
             self.clock.tick(60)
         
 
