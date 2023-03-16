@@ -52,7 +52,7 @@ class Game():
     def draw(self):
         # this is where we will blit stuff
         self.screen.fill((255, 0, 255))
-        self.screen.blit(self.mario.get_image(width=30, height=15), (0,0))
+        self.screen.blit(self.mario.get_image(60, 0, 30, 30), (0,0))
         pg.display.flip()
 
     def play(self):

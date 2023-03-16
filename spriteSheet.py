@@ -3,7 +3,6 @@
 #																			   #
 #																			   #
 #______________________________________________________________________________#
-
 import pygame as pg
 
 class SpriteSheet:
@@ -14,14 +13,18 @@ class SpriteSheet:
 			self.sheet = pg.image.load(filename).convert_alpha()
 		except:
 			print(f'Unable to load spriteSheet image: {filename}')
+		# scale up the image
+		# TODO:scale here
 		
-	def get_image(self, sprite_width, sprite_height, ):
+	def get_image(self, sprite_locationx, sprite_locationy, sprite_width, sprite_height, ):
 		# first create and empty square
 		image = pg.Surface((sprite_width, sprite_height)).convert_alpha()
+		
 		# this gets the image from the sheet
-		image.blit(self.sheet, (0,0), (30, 0, sprite_width, sprite_height))
+		image.blit(self.sheet, (0,0), (sprite_locationx, sprite_locationy, sprite_width, sprite_height))
 		return image
 
 
 
-# small mario 30 wide and 15 tall
+# small mario 30 wide and 15 tall currently scaled x2
+#198552
