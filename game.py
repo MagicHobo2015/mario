@@ -19,7 +19,10 @@ from vector import Vector
 from mario import Mario
 from vector import Vector
 from spriteSheet import SpriteSheet
+import pytmx
 
+tmx_data = pytmx.TiledMap("map.tmx")
+print(tmx_data.layers)
 
 class Game():
     def __init__(self):
