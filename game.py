@@ -21,7 +21,7 @@ from mario import Mario
 from vector import Vector
 from spriteSheet import SpriteSheet
 from grass import Grass
-
+from ground import Ground
 
 class Game():
     def __init__(self):
@@ -37,10 +37,11 @@ class Game():
 
         # Get all the non-empty blocks in the layer "Grass"
         grass = tmx_data.get_layer_by_name("Grass")
-        # for x, y, image in grass.tiles():
-        #     print(x, y, type(image))
         self.grass = Grass(game=self, layer=grass)
 
+        # Get all the non-empty blocks in the layer "Ground"
+        ground = tmx_data.get_layer_by_name("Ground")
+        self.ground = Ground(game=self, layer=ground)
 
     def check_events(self):
         keys_dir = {pg.K_w: [Vector(0, -1), "left", "still_left"], pg.K_UP: [Vector(0, -1), "left", "still_left"],
@@ -64,7 +65,10 @@ class Game():
                     # layer_vel should only take the x value of the Vector from keys_dir
                     self.grass.layer_vel = self.settings.mario_speed * keys_dir[key][0]
                     self.grass.layer_vel.y = 0
-                    
+
+                    self.ground.layer_vel = self.settings.mario_speed * keys_dir[key][0]
+                    self.ground.layer_vel.y = 0
+
             elif event.type == pg.KEYUP:
                 key = event.key
                 if key in keys_dir:
@@ -74,7 +78,9 @@ class Game():
 
                     # reset velocity of grass layer
                     self.grass.layer_vel = Vector()
-
+                    # reset velocity of ground layer
+                    self.ground.layer_vel = Vector()
+                    
     def game_over(self):
         # run shutdown animation
         #shutdown everything
@@ -89,6 +95,7 @@ class Game():
         self.screen.fill((0, 0, 0))
         self.mario.update()
         self.grass.update()
+        self.ground.update()
         pg.display.flip()
 
     def play(self):
