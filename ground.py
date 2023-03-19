@@ -19,7 +19,8 @@ class Ground(pg.sprite.Sprite):
 
     def update(self):
         self.layer.offsetx += self.layer_vel.x
-        self.layer.offsety += self.layer_vel.y
+        # The y offset should not change (map is only moving left or right)
+        self.layer.offsety = 0
         self.draw()
 
     def draw(self):

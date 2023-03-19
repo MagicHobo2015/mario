@@ -20,8 +20,11 @@ from vector import Vector
 from mario import Mario
 from vector import Vector
 from spriteSheet import SpriteSheet
-from grass import Grass
 from ground import Ground
+from blocks import Blocks
+from pipe import Pipes
+from grass import Grass
+from clouds import Clouds
 
 class Game():
     def __init__(self):
@@ -35,13 +38,25 @@ class Game():
         self.clock = pg.time.Clock()
         self.mario = Mario(self)
 
+        # Get all the non-empty blocks in the layer "Ground"
+        ground = tmx_data.get_layer_by_name("Ground")
+        self.ground = Ground(game=self, layer=ground)
+
+        # Get all the non-empty blocks in the layer "Blocks"
+        blocks = tmx_data.get_layer_by_name("Blocks")
+        self.blocks = Blocks(game=self, layer=blocks)
+
+        # Get all the non-empty blocks in the layer "Pipes"
+        pipes = tmx_data.get_layer_by_name("Pipes")
+        self.pipes = Pipes(game=self, layer=pipes)
+
         # Get all the non-empty blocks in the layer "Grass"
         grass = tmx_data.get_layer_by_name("Grass")
         self.grass = Grass(game=self, layer=grass)
 
-        # Get all the non-empty blocks in the layer "Ground"
-        ground = tmx_data.get_layer_by_name("Ground")
-        self.ground = Ground(game=self, layer=ground)
+        # Get all the non-empty blocks in the layer "Clouds"
+        clouds = tmx_data.get_layer_by_name("Clouds")
+        self.clouds = Clouds(game=self, layer=clouds)
 
     def check_events(self):
         keys_dir = {pg.K_w: [Vector(0, -1), "left", "still_left"], pg.K_UP: [Vector(0, -1), "left", "still_left"],
@@ -62,12 +77,13 @@ class Game():
                     self.mario.set_action(keys_dir[key][1])
 
                     # handling movement of level tiles
+                    # multiply by the x value of the Vector of the opposite direction of the key pressed
                     # layer_vel should only take the x value of the Vector from keys_dir
-                    self.grass.layer_vel = self.settings.mario_speed * keys_dir[key][0]
-                    self.grass.layer_vel.y = 0
-
-                    self.ground.layer_vel = self.settings.mario_speed * keys_dir[key][0]
-                    self.ground.layer_vel.y = 0
+                    self.ground.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
+                    self.blocks.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
+                    self.pipes.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
+                    self.grass.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
+                    self.clouds.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
 
             elif event.type == pg.KEYUP:
                 key = event.key
@@ -76,10 +92,12 @@ class Game():
                     # set mario to still
                     self.mario.set_action(keys_dir[key][2])
 
-                    # reset velocity of grass layer
-                    self.grass.layer_vel = Vector()
-                    # reset velocity of ground layer
+                    # reset velocity of all layer
                     self.ground.layer_vel = Vector()
+                    self.blocks.layer_vel = Vector()
+                    self.pipes.layer_vel = Vector()
+                    self.grass.layer_vel = Vector()
+                    self.clouds.layer_vel = Vector()
                     
     def game_over(self):
         # run shutdown animation
@@ -94,8 +112,11 @@ class Game():
         # to clear the screen
         self.screen.fill((0, 0, 0))
         self.mario.update()
-        self.grass.update()
         self.ground.update()
+        self.blocks.update()
+        self.pipes.update()
+        self.grass.update()
+        self.clouds.update()
         pg.display.flip()
 
     def play(self):
