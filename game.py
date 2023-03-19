@@ -13,27 +13,33 @@
 # Imports go here
 import pygame as pg
 import sys
+import pytmx
 # hand crafted imports
 from settings import Settings
 from vector import Vector
 from mario import Mario
 from vector import Vector
 from spriteSheet import SpriteSheet
-import pytmx
+from grass import Grass
 
-tmx_data = pytmx.TiledMap("map.tmx")
-print(tmx_data.layers)
 
 class Game():
     def __init__(self):
         pg.init()
         self.settings = Settings()
         self.screen = pg.display.set_mode(self.settings.window_size)
+        tmx_data = pytmx.load_pygame("map.tmx")
         pg.display.set_caption("Mario!")
         self.running = True
         # helps limit frames per second
         self.clock = pg.time.Clock()
         self.mario = Mario(self)
+
+        # Get all the non-empty blocks in the layer "Grass"
+        grass = tmx_data.get_layer_by_name("Grass")
+        # for x, y, image in grass.tiles():
+        #     print(x, y, type(image))
+        self.grass = Grass(game=self, layer=grass)
 
 
     def check_events(self):
@@ -73,6 +79,7 @@ class Game():
         # to clear the screen
         self.screen.fill((0, 0, 0))
         self.mario.update()
+        self.grass.update()
         pg.display.flip()
 
     def play(self):
