@@ -59,12 +59,21 @@ class Game():
                 if key in keys_dir:
                     self.mario.v += self.settings.mario_speed * keys_dir[key][0]
                     self.mario.set_action(keys_dir[key][1])
+
+                    # handling movement of level tiles
+                    # layer_vel should only take the x value of the Vector from keys_dir
+                    self.grass.layer_vel = self.settings.mario_speed * keys_dir[key][0]
+                    self.grass.layer_vel.y = 0
+                    
             elif event.type == pg.KEYUP:
                 key = event.key
                 if key in keys_dir:
                     self.mario.v = Vector()
                     # set mario to still
                     self.mario.set_action(keys_dir[key][2])
+
+                    # reset velocity of grass layer
+                    self.grass.layer_vel = Vector()
 
     def game_over(self):
         # run shutdown animation
