@@ -83,7 +83,6 @@ class Game():
             self.draw()
             pg.display.update()
             self.clock.tick(60)
-        
 
 # minimum stuff here
 def main():

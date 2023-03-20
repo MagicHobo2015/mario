@@ -11,14 +11,21 @@ from spriteSheet import SpriteSheet
 
 
 class Mario(Sprite):
-
+                
+    actions = ["left", "right", "still_left", "still_right", "squatting_left",
+               "squatting_right", "jumping_left", "jumping_right",
+               "skidding_left", "skidding_right"]
+    
     small_mario = {"offsetx": 30, "offsety" : 0, "sizex": 17, "sizey": 17,
                    "left": [1, 3, 4, 5], "right": [ 8, 9, 10, 12],
                    "still_right": [6], "still_left": [7], "scale": 3}
     
-    large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 17, "sizey": 35,
-                   "left": [3, 4, 5], "right": [10, 9, 8],
-                   "still_right": [6], "still_left": [7], "scale": 5}
+    large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 19, "sizey": 35,
+                   "left": [3, 4, 5], "right": [10, 9, 8], "still_right": [6],
+                   "still_left": [7], "squatting_left": [0],
+                   "squatting_right": [13], "jumping_left": [1],
+                   "jumping_right": [12], "skidding_left": [2],
+                   "skidding_right": [11], "scale": 5}
     
     
     def __init__(self, game):
@@ -29,7 +36,7 @@ class Mario(Sprite):
         self.dying = False
         self.running = False
         self.marios_action = "still_right" # begining state
-        
+        self.direction = "right"
         # this is where marios first postition is set
         self.v = Vector()
         self.posn = self.v
@@ -42,9 +49,8 @@ class Mario(Sprite):
         self.posn.y = self.rect.y
         self.x = float(self.rect.x)
         self.posn.x = self.x
-        self.timer = Timer(self.images, 0, delay=50, is_loop=True)
-        
-        # leave this for now
+        self.timer = Timer(self.images, 0, delay=500, is_loop=True)
+
     def setup_small_mario(self):
             offsetx = self.small_mario["offsetx"]
             offsety = self.small_mario["offsety"]
@@ -82,27 +88,16 @@ class Mario(Sprite):
             
             # this is how much to stretch the image from the sheet
             scale = self.large_mario["scale"]
-            
+            temp_dictionary = {}
+      
             image_sheet = SpriteSheet('assets/characters/mario/mario.png')
             
-            left_images = [image_sheet.get_image(offsetx * slot,
+            for action in self.actions:
+                image_list = [image_sheet.get_image(offsetx * slot,
                                                            offsety, sizex, sizey, scale)
-                                for slot in self.large_mario["left"]]
-            
-            right_images = [image_sheet.get_image(offsetx * slot, offsety,
-                                                            sizex, sizey, scale)
-                                 for slot in self.large_mario["right"]]
-            
-            still_left = [image_sheet.get_image(offsetx * slot,
-                                                          offsety, sizex, sizey, scale)
-                               for slot in self.large_mario["still_left"]]
-            
-            still_right = [image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
-                                for slot in self.large_mario["still_right"]]
-            
-            return {"left": left_images, "right": right_images,
-                                "still_left": still_left, "still_right": still_right}
-
+                                for slot in self.large_mario[action]]
+                temp_dictionary.update({action: image_list})
+            return temp_dictionary
 
     def set_action(self, action):
         self.timer = Timer(self.mario_images[action], 0, delay=100, is_loop=True)
@@ -114,7 +109,7 @@ class Mario(Sprite):
         self.draw()
     
     # this binds the vector to the image rect. if other objs need it ill put it in a class
-    def clamp(self, posn, rect, settings):
+    def clamp(self, posn:set, rect:pg.rect, settings):
         left, top = posn.x, posn.y
         width, height = rect.width, rect.height
         left = max(0, min(left, settings.window_size[0] - width))
@@ -126,5 +121,3 @@ class Mario(Sprite):
         rect = image.get_rect()
         rect.centerx, rect.centery = self.rect.centerx, self.rect.centery
         self.screen.blit(image, rect)
-        
-        
