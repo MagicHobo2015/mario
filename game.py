@@ -14,6 +14,7 @@
 import pygame as pg
 import sys
 import pytmx
+import os
 # hand crafted imports
 from settings import Settings
 from vector import Vector
@@ -31,12 +32,15 @@ class Game():
         pg.init()
         self.settings = Settings()
         self.screen = pg.display.set_mode(self.settings.window_size)
-        tmx_data = pytmx.load_pygame("map.tmx")
         pg.display.set_caption("Mario!")
-        self.running = True
         # helps limit frames per second
         self.clock = pg.time.Clock()
         self.mario = Mario(self)
+        
+        # Get the path to the map.tmx file and store it in tmx_data
+        # This store all the data for the entire level, including all the blocks and their coordinates
+        tmx_data = pytmx.load_pygame(os.path.join(os.path.dirname(__file__), "assets", "level_one", "map.tmx"))
+        self.running = True
 
         # Get all the non-empty blocks in the layer "Ground"
         ground = tmx_data.get_layer_by_name("Ground")
