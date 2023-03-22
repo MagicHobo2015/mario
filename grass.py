@@ -22,6 +22,7 @@ class Grass(pg.sprite.Sprite):
         # The y offset should not change (map is only moving left or right)
         self.layer.offsety = 0
         self.draw()
+        
     def draw(self):
         # Draws all the tiles in the layer object based on the x and y coordinates
         # Also adds the offset to the x and y coordinates (from moving left or right)
