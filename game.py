@@ -83,11 +83,11 @@ class Game():
                     # handling movement of level tiles
                     # multiply by the x value of the Vector of the opposite direction of the key pressed
                     # layer_vel should only take the x value of the Vector from keys_dir
-                    self.ground.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
-                    self.blocks.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
-                    self.pipes.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
-                    self.grass.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
-                    self.clouds.layer_vel = self.settings.mario_speed * keys_dir[key][0] * -1
+                    self.ground.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
+                    self.blocks.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
+                    self.pipes.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
+                    self.grass.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
+                    self.clouds.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
 
             elif event.type == pg.KEYUP:
                 key = event.key

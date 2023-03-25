@@ -19,7 +19,7 @@ class Mario(Sprite):
     large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 17, "sizey": 35,
                    "left": [3, 4, 5], "right": [10, 9, 8],
                    "still_right": [7], "still_left": [6], "squatting_right": [13],
-                   "squatting_left": [0], "jump_right": [12], "jump_left": [1], "scale": 5}
+                   "squatting_left": [0], "jump_right": [12], "jump_left": [1], "scale": 2}
     
     
     def __init__(self, game):
@@ -40,7 +40,7 @@ class Mario(Sprite):
         self.mario_images = self.setup_large_mario()
         self.images = self.mario_images[self.marios_action]
         self.rect = self.images[0].get_rect()
-        self.rect.y = self.screen.get_height() - self.rect.height * 2
+        self.rect.y =  450
         self.posn.y = self.rect.y
         self.x = float(self.rect.x)
         self.posn.x = self.x
@@ -139,7 +139,6 @@ class Mario(Sprite):
         
     def set_action(self, action):
         new_action = action
-        print(action)
         if action == "squatting_":
             join_me = ["squatting_", self.marios_direction]
             new_action = ''.join(join_me)
@@ -149,7 +148,6 @@ class Mario(Sprite):
         elif action == "jump_":
             join_me = ["jump_", self.marios_direction]
             new_action = ''.join(join_me)
-            print(new_action)
            
         self.timer = Timer(self.mario_images[new_action], 0, delay=100, is_loop=True)
      
