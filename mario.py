@@ -18,7 +18,8 @@ class Mario(Sprite):
     
     large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 17, "sizey": 35,
                    "left": [3, 4, 5], "right": [10, 9, 8],
-                   "still_right": [6], "still_left": [7], "scale": 5}
+                   "still_right": [7], "still_left": [6], "squatting_right": [13],
+                   "squatting_left": [0], "jump_right": [12], "jump_left": [1], "scale": 5}
     
     
     def __init__(self, game):
@@ -28,6 +29,7 @@ class Mario(Sprite):
         self.lives = self.settings.mario_lives
         self.dying = False
         self.running = False
+        self.marios_direction = "right"
         self.marios_action = "still_right" # begining state
         
         # this is where marios first postition is set
@@ -97,15 +99,61 @@ class Mario(Sprite):
                                                           offsety, sizex, sizey, scale)
                                for slot in self.large_mario["still_left"]]
             
-            still_right = [image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
+            still_right = [image_sheet.get_image(offsetx  * slot, offsety, sizex, sizey, scale)
                                 for slot in self.large_mario["still_right"]]
             
-            return {"left": left_images, "right": right_images,
-                                "still_left": still_left, "still_right": still_right}
+            jump_right = [image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
+                                for slot in self.large_mario["jump_right"]]
+            
+            jump_left = [image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
+                                for slot in self.large_mario["jump_left"]]
+            
+            squatting_right =[image_sheet.get_image(offsetx * slot, offsety - 6, sizex, sizey, scale)
+                                for slot in self.large_mario["squatting_right"]]
+            
+            squatting_left =[image_sheet.get_image(offsetx * slot, offsety - 6, sizex, sizey, scale)
+                                for slot in self.large_mario["squatting_left"]]
+            
+            return {"left": left_images, "right": right_images, "still_left": still_left,
+                    "still_right": still_right, "jump_right": jump_right,
+                    "jump_left": jump_left, "squatting_right": squatting_right, "squatting_left": squatting_left}
 
-
+    def move_mario(self, key, event_type):
+        if key == pg.K_LEFT:
+            self.marios_direction = "left"
+        elif key == pg.K_RIGHT:
+            self.marios_direction = "right"
+        
+    
+        keys_dir = {pg.K_w: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
+            pg.K_s: ["squatting_", "still_"], pg.K_DOWN: ["squatting_", "still_"],
+            pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
+            pg.K_d: ["right", "still_"],
+            pg.K_RIGHT: ["right", "still_", "jump_"]}
+        
+        if event_type == "KEYDOWN":
+            self.set_action(keys_dir[key][0])
+        elif event_type == "KEYUP":
+            self.set_action(keys_dir[key][1])
+        
+        
     def set_action(self, action):
-        self.timer = Timer(self.mario_images[action], 0, delay=100, is_loop=True)
+        new_action = action
+        print(action)
+        if action == "squatting_":
+            join_me = ["squatting_", self.marios_direction]
+            new_action = ''.join(join_me)
+        elif action == "still_":
+           join_me = ["still_", self.marios_direction]
+           new_action = ''.join(join_me)
+        elif action == "jump_":
+            join_me = ["jump_", self.marios_direction]
+            new_action = ''.join(join_me)
+            print(new_action)
+           
+        self.timer = Timer(self.mario_images[new_action], 0, delay=100, is_loop=True)
+     
+     
      
     def update(self):
         # this is where we check if he is still alive and update x and y pos.
