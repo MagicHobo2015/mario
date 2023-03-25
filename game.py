@@ -34,12 +34,11 @@ class Game():
 
 
     def check_events(self):
-        keys_dir = {pg.K_w: [Vector(0, -1), "left", "still_left"], pg.K_UP: [Vector(0, -1), "left", "still_left"],
-            pg.K_s: [Vector(0, 1), "squatting", "still_right"], pg.K_DOWN: [Vector(0, 1), "squatting", "still_right"],
-            pg.K_a: [Vector(-1, 0), "left", "still_left", "jump_left"],
-            pg.K_LEFT: [Vector(-1, 0), "left", "still_left", "jump_left"],
-            pg.K_d: [Vector(1, 0), "right", "still_right", "jump_right"],
-            pg.K_RIGHT: [Vector(1, 0), "right", "still_right", "jump_right"]}
+        
+        keys_dir = {pg.K_w: Vector(0, -1), pg.K_UP: Vector(0, -1),
+            pg.K_s: Vector(0, 1), pg.K_DOWN: Vector(0, 1),
+            pg.K_a: Vector(-1, 0), pg.K_LEFT: Vector(-1, 0),
+            pg.K_d: Vector(1, 0), pg.K_RIGHT: Vector(1, 0)}
         
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -48,14 +47,13 @@ class Game():
             elif event.type == pg.KEYDOWN:
                 key = event.key
                 if key in keys_dir:
-                    self.mario.v += self.settings.mario_speed * keys_dir[key][0]
-                    self.mario.set_action(keys_dir[key][1])
+                    self.mario.v += self.settings.mario_speed * keys_dir[key]
+                    self.mario.move_mario(key, "KEYDOWN")
             elif event.type == pg.KEYUP:
                 key = event.key
                 if key in keys_dir:
                     self.mario.v = Vector()
-                    # set mario to still
-                    self.mario.set_action(keys_dir[key][2])
+                    self.mario.move_mario(key, "KEYUP")
 
     def game_over(self):
         # run shutdown animation
