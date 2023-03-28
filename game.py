@@ -114,12 +114,12 @@ class Game():
     def draw(self):
         # to clear the screen
         self.screen.fill((0, 0, 0))
-        self.mario.update()
         self.ground.update()
         self.blocks.update()
         self.pipes.update()
         self.grass.update()
         self.clouds.update()
+        self.mario.update()
         pg.display.flip()
 
     def play(self):
