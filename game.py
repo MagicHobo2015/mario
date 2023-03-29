@@ -64,7 +64,7 @@ class Game():
 
     def check_events(self):
         
-        keys_dir = {pg.K_w: Vector(0, -1), pg.K_UP: Vector(0, -1),
+        keys_dir = {pg.K_KP0: Vector(0, -1), pg.K_UP: Vector(0, -1),
             pg.K_s: Vector(0, 1), pg.K_DOWN: Vector(0, 1),
             pg.K_a: Vector(-1, 0), pg.K_LEFT: Vector(-1, 0),
             pg.K_d: Vector(1, 0), pg.K_RIGHT: Vector(1, 0)}
@@ -76,10 +76,9 @@ class Game():
             elif event.type == pg.KEYDOWN:
                 key = event.key
                 if key in keys_dir:
-                    self.mario.v += self.settings.mario_speed * keys_dir[key]
                     self.mario.move_mario(key, "KEYDOWN")
 
-  
+
                     # handling movement of level tiles
                     # multiply by the x value of the Vector of the opposite direction of the key pressed
                     # layer_vel should only take the x value of the Vector from keys_dir
@@ -114,12 +113,12 @@ class Game():
     def draw(self):
         # to clear the screen
         self.screen.fill((0, 0, 0))
-        self.mario.update()
         self.ground.update()
         self.blocks.update()
         self.pipes.update()
         self.grass.update()
         self.clouds.update()
+        self.mario.update()
         pg.display.flip()
 
     def play(self):
