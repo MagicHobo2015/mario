@@ -15,27 +15,30 @@ class Mario(Sprite):
     small_mario = {"offsetx": 30, "offsety" : 0, "sizex": 17, "sizey": 17,
                    "left": [1, 3, 4, 5], "right": [ 8, 9, 10, 12],
                    "still_right": [6], "still_left": [7], "scale": 3}
-    
-    large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 17, "sizey": 35,
+
+    large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 19, "sizey": 35,
                    "left": [3, 4, 5], "right": [10, 9, 8],
-                   "still_right": [7], "still_left": [6], "squatting_right": [13],
-                   "squatting_left": [0], "jump_right": [12], "jump_left": [1], "scale": 2}
-    
-    
+                   "still_right": [6.9], "still_left": [6], "squatting_right": [13],
+                   "squatting_left": [0], "jump_right": [11.9], "jump_left": [1], "scale": 2}
+
+
     def __init__(self, game):
         super().__init__()
         self.screen = game.screen
         self.settings = game.settings
         self.lives = self.settings.mario_lives
         self.dying = False
+        self.acceleration = .001
+        self.velocity = .002
         self.running = False
+        self.walking = False
         self.marios_direction = "right"
         self.marios_action = "still_right" # begining state
-        
+
         # this is where marios first postition is set
         self.v = Vector()
         self.posn = self.v
-        
+
         #self.mario_images = self.setup_small_mario()
         self.mario_images = self.setup_large_mario()
         self.images = self.mario_images[self.marios_action]
@@ -45,7 +48,7 @@ class Mario(Sprite):
         self.x = float(self.rect.x)
         self.posn.x = self.x
         self.timer = Timer(self.images, 0, delay=50, is_loop=True)
-        
+
         # leave this for now
     def setup_small_mario(self):
             offsetx = self.small_mario["offsetx"]
@@ -75,7 +78,7 @@ class Mario(Sprite):
             
             return {"left": left_images, "right": right_images,
                                 "still_left": still_left, "still_right": still_right}
-            
+
     def setup_large_mario(self):
             offsetx = self.large_mario["offsetx"]
             offsety = self.large_mario["offsety"]
@@ -119,24 +122,29 @@ class Mario(Sprite):
                     "jump_left": jump_left, "squatting_right": squatting_right, "squatting_left": squatting_left}
 
     def move_mario(self, key, event_type):
-        if key == pg.K_LEFT:
-            self.marios_direction = "left"
-        elif key == pg.K_RIGHT:
-            self.marios_direction = "right"
-        
-    
-        keys_dir = {pg.K_w: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
+
+        keys_dir = {pg.K_KP0: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
             pg.K_s: ["squatting_", "still_"], pg.K_DOWN: ["squatting_", "still_"],
             pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
             pg.K_d: ["right", "still_"],
             pg.K_RIGHT: ["right", "still_", "jump_"]}
-        
+
         if event_type == "KEYDOWN":
+            if key == pg.K_d or key == pg.K_RIGHT:
+                self.marios_direction = "right"
+                if not self.running:
+                    self.walking = True
+            elif key == pg.K_a or key == pg.K_LEFT:
+                self.marios_direction = "left"
+                if not self.running:
+                    self.walking = True
             self.set_action(keys_dir[key][0])
         elif event_type == "KEYUP":
+            if key == pg.K_a or key == pg.K_LEFT or key == pg.K_RIGHT or key == pg.K_d:
+                self.walking = False
             self.set_action(keys_dir[key][1])
-        
-        
+
+
     def set_action(self, action):
         new_action = action
         if action == "squatting_":
@@ -150,27 +158,32 @@ class Mario(Sprite):
             new_action = ''.join(join_me)
            
         self.timer = Timer(self.mario_images[new_action], 0, delay=100, is_loop=True)
-     
-     
-     
+
+
     def update(self):
-        # this is where we check if he is still alive and update x and y pos.
+        # this is where we check if he is still alive and update x and y pos
+        if self.walking and self.velocity < self.settings.mario_walk_speed:
+            # sets the direction if its left its negative if its right its positive
+            self.velocity += self.acceleration
+            self.v.x += self.velocity if self.marios_direction == "right" else -self.velocity
+        print(self.velocity)
         self.posn += self.v
+        self.v
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
         self.draw()
-    
+
     # this binds the vector to the image rect. if other objs need it ill put it in a class
     def clamp(self, posn, rect, settings):
         left, top = posn.x, posn.y
         width, height = rect.width, rect.height
         left = max(0, min(left, settings.window_size[0] - width))
-        top = max(0, min(top, settings.window_size[1] - height))
+        # set lowest point here
+        top = max(0, min(top, settings.window_size[1] / 2 + height - 25))
         return Vector(x=left, y=top), pg.Rect(left, top, width, height)
-    
+
     def draw(self):
         image = self.timer.image()
         rect = image.get_rect()
         rect.centerx, rect.centery = self.rect.centerx, self.rect.centery
         self.screen.blit(image, rect)
-        
-        
+
