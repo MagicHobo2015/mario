@@ -5,7 +5,7 @@ from pytmx.pytmx import TiledTileLayer
 import pygame as pg
 from vector import Vector
 
-class Layer(pg.sprite.Sprite):
+class Layer():
     """Base Class for all pytmx layers to inherit from"""
     def __init__(self, game: Game, layer: TiledTileLayer):
         super().__init__()
@@ -17,6 +17,10 @@ class Layer(pg.sprite.Sprite):
 
         for x, y, sprite in self.layer.tiles():
             print(f"{x, y, sprite}")
+            # Set up collision detection for each tile in the layer
+            # print(sprite.rect)
+            print(sprite.get_clip())
+
 
     def update(self):
         self.layer.offsetx += self.layer_vel.x
