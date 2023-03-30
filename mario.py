@@ -12,11 +12,13 @@ from spriteSheet import SpriteSheet
 
 class Mario(Sprite):
 
-    small_mario = {"offsetx": 30, "offsety" : 0, "sizex": 17, "sizey": 17,
+    small_mario = {"offsetx": 30, "offsety" : 0, "sizex": 17, "sizey": 16,
                    "left": [3, 4, 5], "right": [ 8, 9, 10, 12],
                    "still_right": [7], "still_left": [6],"squatting_right": [7],
-                   "squatting_left": [6], "jump_right": [12], "jump_left": [1],"scale": 3}
+                   "squatting_left": [6], "jump_right": [12], "jump_left": [1],"scale": 2}
 
+    dying_mario = {"offsetx": 390, "offsety": 15, "sizex": 15, "sizey": 15,
+                   "still_right": [0], "scale": 2}
 
     large_mario = {"offsetx": 30, "offsety" : 52, "sizex": 19, "sizey": 35,
                    "left": [3, 4, 5], "right": [10, 9, 8],
@@ -41,6 +43,7 @@ class Mario(Sprite):
         self.friction = .05
         self.velocity = 0.0
         self.jump_velocity = 0.0
+        # this is to track the change in y as we jump
         self.deltay = 0
         # delay for the animation 100 good for walking
         self.delay = 100
@@ -65,14 +68,13 @@ class Mario(Sprite):
         # self.mario_images = self.setup_large_mario()
         self.images = self.mario_images[self.marios_action]
         self.rect = self.images[0].get_rect()
-        
         self.v = Vector()
-        self.posn = self.v
-        self.rect.y =  1
-        self.posn.y = self.rect.y
-        self.x = float(self.rect.x)
-        self.posn.x = self.x
+        self.posn = Vector()
+        self.posn.x = float(self.rect.x)
+        self.posn.y = 452.0
+        self.rect.centery = self.posn.y
         self.timer = Timer(self.images, 0, delay=500, is_loop=True)
+
 
         # leave this for now
     def setup_small_mario(self):
@@ -118,6 +120,23 @@ class Mario(Sprite):
                                 "still_left": still_left, "still_right": still_right,
                                 "jump_right": jump_right, "jump_left": jump_left,
                                 "squatting_right": squatting_right, "squatting_left": squatting_left}
+
+
+    def setup_dying_mario(self):
+            offsetx = self.dying_mario["offsetx"]
+            offsety = self.dying_mario["offsety"]
+            sizex = self.dying_mario["sizex"]
+            sizey = self.dying_mario["sizey"]
+            
+            # this is how much to stretch the image from the sheet
+            scale = self.dying_mario["scale"]
+            
+            image_sheet = SpriteSheet('assets/characters/mario/mario.png')
+            
+            still_right = [image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
+                                for slot in self.dying_mario["still_right"]]
+            
+            return {"still_right": still_right}
 
     def setup_large_mario(self):
             offsetx = self.large_mario["offsetx"]
@@ -216,24 +235,20 @@ class Mario(Sprite):
         pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
         pg.K_d: ["right", "still_"],pg.K_RIGHT: ["right", "still_", "jump_"]}
         
-        # ***************************************** PRESSING NOTHING *****************************
-        # if keys == []:
-        #     self.walking = False
-        #     self.running = False
-        #     self.set_action("still_")
-        #     keys = pg.key.get_pressed()
         # **************************************** RUNNING ***************************************
         if (keys[pg.K_RIGHT] or keys[pg.K_d]) and keys[pg.K_KP_PERIOD]:
             # youre running
             # set the animation to the correct direction
             self.marios_direction = "right"
             self.running = True
+            self.delay = 50
             self.walking = False
             self.set_action(keys_dir[pg.K_RIGHT][0])
         elif (keys[pg.K_LEFT] or keys[pg.K_a]) and keys[pg.K_KP_PERIOD]:
             # youre here running to the left
             self.marios_direction = "left"
             self.running = True
+            self.delay = 50
             self.walking = False
             self.set_action(keys_dir[pg.K_LEFT][0])
         # ************************************************* END RUNNING ***************************
@@ -241,12 +256,14 @@ class Mario(Sprite):
         elif keys[pg.K_RIGHT] or keys[pg.K_d]:
             # just walking here to the right
             self.walking = True
+            self.delay = 100
             self.running = False
             self.marios_direction = "right"
             self.set_action(keys_dir[pg.K_RIGHT][0])
         elif keys[pg.K_LEFT] or keys[pg.K_a] and not keys[pg.K_KP_PERIOD]:
             # just walking left here
             self.walking = True
+            self.delay = 100
             self.running = False
             self.marios_direction = "left"
             self.set_action(keys_dir[pg.K_LEFT][0])
@@ -255,6 +272,7 @@ class Mario(Sprite):
         # ************************************************* SQUATTING *****************************
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.walking = False
+            self.jumping = False
             self.running = False
             self.set_action(keys_dir[pg.K_DOWN][0])
         # ************************************************ END SQUATTING **************************
@@ -264,14 +282,34 @@ class Mario(Sprite):
             self.set_action("jump_")
         # ******************************************* END JUMPING *********************************
             
-
+    # ************************************ USABLE MARIO ACTIONS ***********************************
     def stop(self):
         self.walking = False
         self.running = False
         self.jumping = False
+        self.velocity = 0
+        self.v = Vector()
         self.set_action("still_")
 
-
+    def shrink(self):
+        self.mario_status = "small_mario"
+        self.mario_images = self.which_image[self.mario_status]
+        
+    def grow(self):
+        self.mario_status = "large_mario"
+        self.mario_images = self.which_image[self.mario_status]
+    
+    def damage(self):
+        if self.mario_status == "small_mario":
+            self.dying = True
+        elif self.mario_status == "large_mario" or self.mario_status == "fire_mario":
+            self.shrink()
+    
+    def fire_power_mario(self):
+        self.mario_status = "fire_mario"
+        self.mario_images = self.which_image[self.mario_status]
+        
+    # ******************************* END ACTIONS *************************************************
     def set_action(self, action):
         new_action = action
         if action == "squatting_":
@@ -292,11 +330,18 @@ class Mario(Sprite):
         # **************************  CHECKING COLLISIONS HERE *******************************
         if self.game.ground.check_collisions(self):
             collisions = self.game.ground.check_collisions(self)
-            self.posn.y = collisions[1] * 27
+            self.posn.y = collisions[1] * 32 - self.rect.height
         elif self.game.blocks.check_collisions(self):
             collisions = self.game.blocks.check_collisions(self)
             self.posn.y = collisions[1] * 25
-        # *************************** END COLLISIONS *****************************************    
+        elif self.game.pipes.check_collisions(self):
+            collisions = self.game.pipes.check_collisions(self)
+            print("hit a tube")
+            self.velocity = 0
+            self.stop()
+            
+        # *************************** END COLLISIONS *****************************************
+            
         # this is where we check if he is still alive and update x and y pos
         if self.walking and self.velocity < self.settings.mario_walk_speed:
             # sets the direction if its left its negative if its right its positive
@@ -311,6 +356,7 @@ class Mario(Sprite):
             elif self.velocity < 0:
                 self.velocity = 0
                 self.v.x = 0
+                
             # this is where deceleration would happen or maybe sliding
         elif self.running and self.velocity < self.settings.mario_run_speed:
             self.velocity += self.running_acceleration
@@ -320,26 +366,17 @@ class Mario(Sprite):
         elif not self.jumping and self.deltay >= self.settings.mario_jump_height:
             self.deltay -= self.settings.gravity
             
-
-
-        # # Check collisions with all tiles from all layers
-        # self.game.ground.check_collisions(self)
-        # self.game.blocks.check_collisions(self)
-        # self.game.pipes.check_collisions(self)
-        # self.game.grass.check_collisions(self)
-        # self.game.clouds.check_collisions(self)
-        
-        
         self.v.x += self.velocity if self.marios_direction == "right" else -self.velocity
 
         self.posn.y -= self.jump_velocity if self.jumping else -self.jump_velocity
         self.posn += self.v
-        print(f"position is {self.posn} and v : {self.v}")
+        print(f'sending {self.posn.y} to be clamped')
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
         self.draw()
 
     # this binds the vector to the image rect. if other objs need it ill put it in a class
     def clamp(self, posn, rect, settings):
+        print(f'clamping: {posn.y}')
         left, top = posn.x, posn.y
         width, height = rect.width, rect.height
         left = max(0, min(left, settings.window_size[0] / 2 - width))
@@ -350,7 +387,7 @@ class Mario(Sprite):
             top = max(0, min(top, settings.window_size[1] - height))
         else: 
             top = max(0, min(top, settings.window_size[1] - height))
-
+        print(f'Top ended up: {top}')
         return Vector(x=left, y=top), pg.Rect(left, top, width, height)
 
     def draw(self):
