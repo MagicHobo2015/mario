@@ -10,22 +10,30 @@ class Layer():
     def __init__(self, game: Game, layer: TiledTileLayer):
         super().__init__()
         self.game = game
+        self.mario = game.mario
         self.tile_size = game.settings.tile_size
         self.layer = layer
         self.layer_vel = Vector()
-        print(self.layer)
+    
+        print(f"{self.layer} loaded")
 
-        for x, y, sprite in self.layer.tiles():
-            print(f"{x, y, sprite}")
-            # Set up collision detection for each tile in the layer
-            # print(sprite.rect)
-            print(sprite.get_clip())
+    def check_collisions(self, sprite: pg.sprite.Sprite):
+        # Check for collisions with all tiles in the layer
+        for x, y, tile in self.layer.tiles():
+            tile_rect = tile.get_clip()
+            tile_rect.x = x * self.tile_size + self.layer.offsetx
+            tile_rect.y = y * self.tile_size + self.layer.offsety
+            if sprite.rect.colliderect(tile_rect):
+                print(f"Collision at {x=} {y=} in layer {self.layer.name}")
+                
+                # TODO: if mario is touching the left side of the tile, set his velocity to 0?
 
 
     def update(self):
         self.layer.offsetx += self.layer_vel.x
         # The y offset should not change (map is only moving left or right)
         self.layer.offsety = 0
+        self.check_collisions(self.mario)
         self.draw()
         
     def draw(self):
