@@ -24,9 +24,9 @@ class Mario(Sprite):
                    "squatting_left": [0], "jump_right": [11.9], "jump_left": [1], "scale": 2}
     
     fire_mario = {"offsetx": 25, "offsety" : 120, "sizex": 23, "sizey": 35,
-                   "left": [4, 5, 6], "right": [11.4, 10.36, 9.2],
-                   "still_right": [8.28], "still_left": [7], "squatting_right": [13],
-                   "squatting_left": [0], "jump_right": [11.9], "jump_left": [1], "scale": 3}
+                   "left": [4, 5, 6], "right": [11.4, 10.36, 9.44],
+                   "still_right": [8.28], "still_left": [7], "squatting_right": [15.4],
+                   "squatting_left": [0], "jump_right": [14.4], "jump_left": [1], "scale": 3}
 
 
     def __init__(self, game):
@@ -36,6 +36,8 @@ class Mario(Sprite):
         self.lives = self.settings.mario_lives
         self.acceleration = .001
         self.velocity = 0.0
+        # delay for the animation 100 good for walking
+        self.delay = 100
 
         # ********************************  ******  section of mario statuses
         self.running = False
@@ -186,11 +188,12 @@ class Mario(Sprite):
             jump_left = [image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
                                 for slot in self.fire_mario["jump_left"]]
             
-            squatting_right =[image_sheet.get_image(offsetx * slot, offsety, sizex, sizey, scale)
+            squatting_right =[image_sheet.get_image(offsetx * slot, offsety, sizex, sizey - 5, scale)
                                 for slot in self.fire_mario["squatting_right"]]
             
-            squatting_left =[image_sheet.get_image(offsetx * slot, offsety - 6, sizex, sizey, scale)
+            squatting_left =[image_sheet.get_image(offsetx * slot, offsety, sizex, sizey - 5, scale)
                                 for slot in self.fire_mario["squatting_left"]]
+
             
             return {"left": left_images, "right": right_images, "still_left": still_left,
                     "still_right": still_right, "jump_right": jump_right,
@@ -243,7 +246,7 @@ class Mario(Sprite):
             join_me = ["jump_", self.marios_direction]
             new_action = ''.join(join_me)
 
-        self.timer = Timer(self.mario_images[new_action], 0, delay=100, is_loop=True)
+        self.timer = Timer(self.mario_images[new_action], 0, delay=self.delay, is_loop=True)
 
 
     def update(self):
@@ -255,6 +258,7 @@ class Mario(Sprite):
         elif not self.walking and self.velocity != 0:
             # this is where deceleration would happen or maybe sliding
             self.velocity = 0
+
         self.posn += self.v
         self.v
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
@@ -267,6 +271,8 @@ class Mario(Sprite):
         left = max(0, min(left, settings.window_size[0] - width))
         # set lowest point here
         if self.mario_status == "fire_mario":
+            if self.marios_action == "squatting_right" or self.marios_action == "squatting_left":
+                top = max(0, min(top, settings.window_size[1] / 2 + 20))
             top = max(0, min(top, settings.window_size[1] / 2 + 8))
         else: 
             top = max(0, min(top, settings.window_size[1] / 2 + height - 25))
