@@ -68,7 +68,8 @@ class Game():
         keys_dir = {pg.K_KP0: Vector(0, -1), pg.K_UP: Vector(0, -1),
             pg.K_s: Vector(0, 1), pg.K_DOWN: Vector(0, 1),
             pg.K_a: Vector(-1, 0), pg.K_LEFT: Vector(-1, 0),
-            pg.K_d: Vector(1, 0), pg.K_RIGHT: Vector(1, 0)}
+            pg.K_d: Vector(1, 0), pg.K_RIGHT: Vector(1, 0), pg.K_KP0: Vector(0, 0),
+            pg.K_KP_PERIOD: Vector(0,0)}
         
         for event in pg.event.get():
             if event.type == pg.QUIT:
