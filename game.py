@@ -22,6 +22,7 @@ from mario import Mario
 from vector import Vector
 from spriteSheet import SpriteSheet
 from ground import Ground
+from blocks import Blocks
 from pipe import Pipes
 from grass import Grass
 from clouds import Clouds
@@ -34,7 +35,6 @@ class Game():
         pg.display.set_caption("Mario!")
         # helps limit frames per second
         self.clock = pg.time.Clock()
-        self.mario = Mario(self)
         
         # Get the path to the map.tmx file and store it in tmx_data
         # This store all the data for the entire level, including all the blocks and their coordinates
@@ -61,6 +61,8 @@ class Game():
         clouds = tmx_data.get_layer_by_name("Clouds")
         self.clouds = Clouds(game=self, layer=clouds)
 
+        self.mario = Mario(self)
+        
     def check_events(self):
         
         keys_dir = {pg.K_KP0: Vector(0, -1), pg.K_UP: Vector(0, -1),

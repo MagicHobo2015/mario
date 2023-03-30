@@ -31,6 +31,7 @@ class Mario(Sprite):
 
     def __init__(self, game):
         super().__init__()
+        self.game = game
         self.screen = game.screen
         self.settings = game.settings
         self.lives = self.settings.mario_lives
@@ -255,6 +256,14 @@ class Mario(Sprite):
         elif not self.walking and self.velocity != 0:
             # this is where deceleration would happen or maybe sliding
             self.velocity = 0
+
+        # Check collisions with all tiles from all layers
+        self.game.ground.check_collisions(self)
+        self.game.blocks.check_collisions(self)
+        self.game.pipes.check_collisions(self)
+        self.game.grass.check_collisions(self)
+        self.game.clouds.check_collisions(self)
+
         self.posn += self.v
         self.v
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)

@@ -2,9 +2,8 @@
 from __future__ import annotations
 from pytmx.pytmx import TiledTileLayer
 
-import pygame as pg
-from vector import Vector
+from layer import Layer
 
-class Blocks(pg.sprite.Sprite):
+class Blocks(Layer):
     def __init__(self, game: Game, layer: TiledTileLayer):
-        super().__init__()
+        super().__init__(game=game, layer=layer)
