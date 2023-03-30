@@ -26,7 +26,7 @@ class Mario(Sprite):
     fire_mario = {"offsetx": 25, "offsety" : 120, "sizex": 23, "sizey": 35,
                    "left": [4, 5, 6], "right": [11.4, 10.36, 9.44],
                    "still_right": [8.28], "still_left": [7], "squatting_right": [15.4],
-                   "squatting_left": [0], "jump_right": [14.4], "jump_left": [1], "scale": 3}
+                   "squatting_left": [0], "jump_right": [14.4], "jump_left": [1], "scale": 2}
 
 
     def __init__(self, game):
@@ -37,8 +37,11 @@ class Mario(Sprite):
         self.lives = self.settings.mario_lives
         self.walking_acceleration = .001
         self. running_acceleration = .008
+        self.jump_acceleration = 5
         self.friction = .05
         self.velocity = 0.0
+        self.jump_velocity = 0.0
+        self.deltay = 0
         # delay for the animation 100 good for walking
         self.delay = 100
 
@@ -65,7 +68,7 @@ class Mario(Sprite):
         
         self.v = Vector()
         self.posn = self.v
-        self.rect.y =  446
+        self.rect.y =  1
         self.posn.y = self.rect.y
         self.x = float(self.rect.x)
         self.posn.x = self.x
@@ -205,7 +208,6 @@ class Mario(Sprite):
 
     # In this function you set the action based on the key pressed
     # Once the action is set the actual moving happens inside of update()
-
     def move_mario(self, keys):
         
         # this list translates keys into animation actions
@@ -256,6 +258,11 @@ class Mario(Sprite):
             self.running = False
             self.set_action(keys_dir[pg.K_DOWN][0])
         # ************************************************ END SQUATTING **************************
+        # ********************************************** JUMPING **********************************
+        if keys[pg.K_KP0]:
+            self.jumping = True
+            self.set_action("jump_")
+        # ******************************************* END JUMPING *********************************
             
 
     def stop(self):
@@ -281,7 +288,15 @@ class Mario(Sprite):
 
 
     def update(self):
-        print(f'running: {self.running} walking: {self.walking}')
+        
+        # **************************  CHECKING COLLISIONS HERE *******************************
+        if self.game.ground.check_collisions(self):
+            collisions = self.game.ground.check_collisions(self)
+            self.posn.y = collisions[1] * 27
+        elif self.game.blocks.check_collisions(self):
+            collisions = self.game.blocks.check_collisions(self)
+            self.posn.y = collisions[1] * 25
+        # *************************** END COLLISIONS *****************************************    
         # this is where we check if he is still alive and update x and y pos
         if self.walking and self.velocity < self.settings.mario_walk_speed:
             # sets the direction if its left its negative if its right its positive
@@ -290,7 +305,7 @@ class Mario(Sprite):
             # here you were running and switched to a walk but still going run speed
             # so slow down
             self.velocity = self.settings.mario_walk_speed
-        elif not self.walking and not self.running:
+        elif not self.walking and not self.running and not self.jumping:
             if self.velocity > 0:
                 self.velocity -= self.friction
             elif self.velocity < 0:
@@ -299,9 +314,14 @@ class Mario(Sprite):
             # this is where deceleration would happen or maybe sliding
         elif self.running and self.velocity < self.settings.mario_run_speed:
             self.velocity += self.running_acceleration
+        elif self.jumping and self.deltay <= self.settings.mario_jump_height:
+            self.jump_velocity += self.jump_acceleration
+            self.deltay += self.jump_velocity
+        elif not self.jumping and self.deltay >= self.settings.mario_jump_height:
+            self.deltay -= self.settings.gravity
+            
 
 
-        print(f'velocity: {self.velocity}')
         # # Check collisions with all tiles from all layers
         # self.game.ground.check_collisions(self)
         # self.game.blocks.check_collisions(self)
@@ -311,7 +331,10 @@ class Mario(Sprite):
         
         
         self.v.x += self.velocity if self.marios_direction == "right" else -self.velocity
+
+        self.posn.y -= self.jump_velocity if self.jumping else -self.jump_velocity
         self.posn += self.v
+        print(f"position is {self.posn} and v : {self.v}")
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
         self.draw()
 
@@ -323,10 +346,10 @@ class Mario(Sprite):
         # set lowest point here
         if self.mario_status == "fire_mario":
             if self.marios_action == "squatting_right" or self.marios_action == "squatting_left":
-                top = max(0, min(top, settings.window_size[1] / 2 + 20))
-            top = max(0, min(top, settings.window_size[1] / 2 + 8))
+                top = max(0, min(top, settings.window_size[1] - height))
+            top = max(0, min(top, settings.window_size[1] - height))
         else: 
-            top = max(0, min(top, settings.window_size[1] / 2 + height - 25))
+            top = max(0, min(top, settings.window_size[1] - height))
 
         return Vector(x=left, y=top), pg.Rect(left, top, width, height)
 

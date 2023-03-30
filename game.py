@@ -76,7 +76,7 @@ class Game():
                 # if you got here its time to shut down
                 self.game_over()
             elif event.type == pg.KEYUP:
-                if event.key == pg.K_LEFT or event.key == pg.K_RIGHT or event.key == pg.K_a or event.key == pg.K_d:
+                if event.key == pg.K_LEFT or event.key == pg.K_RIGHT or event.key == pg.K_a or event.key == pg.K_d or event.key == pg.K_KP0:
                     self.mario.stop()
                     # reset velocity of all layer
                     self.ground.layer_vel = Vector()
@@ -86,6 +86,8 @@ class Game():
                     self.clouds.layer_vel = Vector()
             else:
                 keys = pg.key.get_pressed()
+                if keys[pg.K_KP0]:
+                    self.mario.move_mario(keys)
                     
                 if keys[pg.K_LEFT] or keys[pg.K_RIGHT] or keys[pg.K_a] or keys[pg.K_d]:
                     self.mario.move_mario(keys)

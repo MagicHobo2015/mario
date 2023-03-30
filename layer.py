@@ -25,6 +25,7 @@ class Layer():
             tile_rect.y = y * self.tile_size + self.layer.offsety
             if sprite.rect.colliderect(tile_rect):
                 print(f"Collision at {x=} {y=} in layer {self.layer.name}")
+                return [x, y, self.layer.name]
 
                 
 
