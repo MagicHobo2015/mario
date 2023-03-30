@@ -22,7 +22,6 @@ from mario import Mario
 from vector import Vector
 from spriteSheet import SpriteSheet
 from ground import Ground
-from blocks import Blocks
 from pipe import Pipes
 from grass import Grass
 from clouds import Clouds
