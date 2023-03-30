@@ -70,16 +70,31 @@ class Game():
             pg.K_a: Vector(-1, 0), pg.K_LEFT: Vector(-1, 0),
             pg.K_d: Vector(1, 0), pg.K_RIGHT: Vector(1, 0), pg.K_KP0: Vector(0, 0),
             pg.K_KP_PERIOD: Vector(0,0)}
-        
+          
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 # if you got here its time to shut down
                 self.game_over()
-            elif event.type == pg.KEYDOWN:
-                key = event.key
-                if key in keys_dir:
-                    self.mario.move_mario(key, "KEYDOWN")
-
+            elif event.type == pg.KEYUP:
+                if event.key == pg.K_LEFT or event.key == pg.K_RIGHT or event.key == pg.K_a or event.key == pg.K_d or event.key == pg.K_KP0:
+                    self.mario.stop()
+                    # reset velocity of all layer
+                    self.ground.layer_vel = Vector()
+                    self.blocks.layer_vel = Vector()
+                    self.pipes.layer_vel = Vector()
+                    self.grass.layer_vel = Vector()
+                    self.clouds.layer_vel = Vector()
+            else:
+                keys = pg.key.get_pressed()
+                if keys[pg.K_KP0]:
+                    self.mario.move_mario(keys)
+                    
+                if keys[pg.K_LEFT] or keys[pg.K_RIGHT] or keys[pg.K_a] or keys[pg.K_d]:
+                    self.mario.move_mario(keys)
+                    if keys[pg.K_LEFT] or keys[pg.K_a]:
+                        key = pg.K_LEFT
+                    elif keys[pg.K_RIGHT] or keys[pg.K_d]:
+                        key = pg.K_RIGHT
 
                     # handling movement of level tiles
                     # multiply by the x value of the Vector of the opposite direction of the key pressed
@@ -90,19 +105,7 @@ class Game():
                     self.grass.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
                     self.clouds.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
 
-            elif event.type == pg.KEYUP:
-                key = event.key
-                if key in keys_dir:
-                    self.mario.v = Vector()
-                    self.mario.move_mario(key, "KEYUP")
 
-                    # reset velocity of all layer
-                    self.ground.layer_vel = Vector()
-                    self.blocks.layer_vel = Vector()
-                    self.pipes.layer_vel = Vector()
-                    self.grass.layer_vel = Vector()
-                    self.clouds.layer_vel = Vector()
-                    
     def game_over(self):
         # run shutdown animation
         #shutdown everything
