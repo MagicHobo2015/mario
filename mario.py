@@ -35,7 +35,9 @@ class Mario(Sprite):
         self.screen = game.screen
         self.settings = game.settings
         self.lives = self.settings.mario_lives
-        self.acceleration = .001
+        self.walking_acceleration = .001
+        self. running_acceleration = .008
+        self.friction = .05
         self.velocity = 0.0
         # delay for the animation 100 good for walking
         self.delay = 100
@@ -203,36 +205,64 @@ class Mario(Sprite):
 
     # In this function you set the action based on the key pressed
     # Once the action is set the actual moving happens inside of update()
-    def move_mario(self, key, event_type):
 
+    def move_mario(self, keys):
+        
+        # this list translates keys into animation actions
         keys_dir = {pg.K_KP0: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
-            pg.K_s: ["squatting_", "still_"], pg.K_DOWN: ["squatting_", "still_"],
-            pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
-            pg.K_d: ["right", "still_"],
-            pg.K_RIGHT: ["right", "still_", "jump_"]}
+        pg.K_s: ["squatting_", "still_"], pg.K_DOWN: ["squatting_", "still_"],
+        pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
+        pg.K_d: ["right", "still_"],pg.K_RIGHT: ["right", "still_", "jump_"]}
+        
+        # ***************************************** PRESSING NOTHING *****************************
+        # if keys == []:
+        #     self.walking = False
+        #     self.running = False
+        #     self.set_action("still_")
+        #     keys = pg.key.get_pressed()
+        # **************************************** RUNNING ***************************************
+        if (keys[pg.K_RIGHT] or keys[pg.K_d]) and keys[pg.K_KP_PERIOD]:
+            # youre running
+            # set the animation to the correct direction
+            self.marios_direction = "right"
+            self.running = True
+            self.walking = False
+            self.set_action(keys_dir[pg.K_RIGHT][0])
+        elif (keys[pg.K_LEFT] or keys[pg.K_a]) and keys[pg.K_KP_PERIOD]:
+            # youre here running to the left
+            self.marios_direction = "left"
+            self.running = True
+            self.walking = False
+            self.set_action(keys_dir[pg.K_LEFT][0])
+        # ************************************************* END RUNNING ***************************
+        # ************************************************** WALKING ******************************
+        elif keys[pg.K_RIGHT] or keys[pg.K_d]:
+            # just walking here to the right
+            self.walking = True
+            self.running = False
+            self.marios_direction = "right"
+            self.set_action(keys_dir[pg.K_RIGHT][0])
+        elif keys[pg.K_LEFT] or keys[pg.K_a] and not keys[pg.K_KP_PERIOD]:
+            # just walking left here
+            self.walking = True
+            self.running = False
+            self.marios_direction = "left"
+            self.set_action(keys_dir[pg.K_LEFT][0])
 
-        # If you are pressing or holding a key this is where the action is set
-        if event_type == "KEYDOWN":
-            # if you press d or the right arrow
-            if key == pg.K_d or key == pg.K_RIGHT:
-                # then mario should be facing right, and all his animations face right
-                self.marios_direction = "right"
-                if not self.running:
-                    # sets the flag that we are walking
-                    self.walking = True
-            # if you press a or the left arrow then do this stuff
-            elif key == pg.K_a or key == pg.K_LEFT:
-                # animations should face left
-                self.marios_direction = "left"
-                if not self.running:
-                    self.walking = True
-            # no matter what his action (state) is set here
-            self.set_action(keys_dir[key][0])
-        # if you let the key go this is where that action is set
-        elif event_type == "KEYUP":
-            if key == pg.K_a or key == pg.K_LEFT or key == pg.K_RIGHT or key == pg.K_d:
-                self.walking = False
-            self.set_action(keys_dir[key][1])
+        # ************************************************* END WALKING ***************************
+        # ************************************************* SQUATTING *****************************
+        if keys[pg.K_DOWN] or keys[pg.K_s]:
+            self.walking = False
+            self.running = False
+            self.set_action(keys_dir[pg.K_DOWN][0])
+        # ************************************************ END SQUATTING **************************
+            
+
+    def stop(self):
+        self.walking = False
+        self.running = False
+        self.jumping = False
+        self.set_action("still_")
 
 
     def set_action(self, action):
@@ -251,24 +281,37 @@ class Mario(Sprite):
 
 
     def update(self):
+        print(f'running: {self.running} walking: {self.walking}')
         # this is where we check if he is still alive and update x and y pos
         if self.walking and self.velocity < self.settings.mario_walk_speed:
             # sets the direction if its left its negative if its right its positive
-            self.velocity += self.acceleration
-            self.v.x += self.velocity if self.marios_direction == "right" else -self.velocity
-        elif not self.walking and self.velocity != 0:
+            self.velocity += self.walking_acceleration
+        elif self.walking and self.velocity > self.settings.mario_walk_speed:
+            # here you were running and switched to a walk but still going run speed
+            # so slow down
+            self.velocity = self.settings.mario_walk_speed
+        elif not self.walking and not self.running:
+            if self.velocity > 0:
+                self.velocity -= self.friction
+            elif self.velocity < 0:
+                self.velocity = 0
+                self.v.x = 0
             # this is where deceleration would happen or maybe sliding
-            self.velocity = 0
+        elif self.running and self.velocity < self.settings.mario_run_speed:
+            self.velocity += self.running_acceleration
 
-        # Check collisions with all tiles from all layers
-        self.game.ground.check_collisions(self)
-        self.game.blocks.check_collisions(self)
-        self.game.pipes.check_collisions(self)
-        self.game.grass.check_collisions(self)
-        self.game.clouds.check_collisions(self)
 
+        print(f'velocity: {self.velocity}')
+        # # Check collisions with all tiles from all layers
+        # self.game.ground.check_collisions(self)
+        # self.game.blocks.check_collisions(self)
+        # self.game.pipes.check_collisions(self)
+        # self.game.grass.check_collisions(self)
+        # self.game.clouds.check_collisions(self)
+        
+        
+        self.v.x += self.velocity if self.marios_direction == "right" else -self.velocity
         self.posn += self.v
-        self.v
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
         self.draw()
 
@@ -276,7 +319,7 @@ class Mario(Sprite):
     def clamp(self, posn, rect, settings):
         left, top = posn.x, posn.y
         width, height = rect.width, rect.height
-        left = max(0, min(left, settings.window_size[0] - width))
+        left = max(0, min(left, settings.window_size[0] / 2 - width))
         # set lowest point here
         if self.mario_status == "fire_mario":
             if self.marios_action == "squatting_right" or self.marios_action == "squatting_left":
