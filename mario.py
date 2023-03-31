@@ -37,11 +37,11 @@ class Mario(Sprite):
         self.screen = game.screen
         self.settings = game.settings
         self.lives = self.settings.mario_lives
-        self.walking_acceleration = .001
+        self.walking_acceleration = .05
         self. running_acceleration = .008
         self.jump_acceleration = 5
-        self.friction = .05
-        self.velocity = 0.0
+        self.friction = .2
+        self.velocity = Vector()
         self.jump_velocity = 0.0
         # this is to track the change in y as we jump
         self.deltay = 0
@@ -52,6 +52,7 @@ class Mario(Sprite):
         self.running = False
         self.walking = False
         self.jumping = False
+        self.coming_down = False
         self.dying = False
 
         self.marios_direction = "right"
@@ -225,6 +226,10 @@ class Mario(Sprite):
                     "jump_left": jump_left, "squatting_right": squatting_right, "squatting_left": squatting_left}
 
 
+    def dying_animation(self):
+        self.setup_dying_mario()
+        
+
     # In this function you set the action based on the key pressed
     # Once the action is set the actual moving happens inside of update()
     def move_mario(self, keys):
@@ -235,61 +240,153 @@ class Mario(Sprite):
         pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
         pg.K_d: ["right", "still_"],pg.K_RIGHT: ["right", "still_", "jump_"]}
         
-        # **************************************** RUNNING ***************************************
-        if (keys[pg.K_RIGHT] or keys[pg.K_d]) and keys[pg.K_KP_PERIOD]:
-            # youre running
-            # set the animation to the correct direction
-            self.marios_direction = "right"
-            self.running = True
-            self.delay = 50
+        # youre either going left or right
+        # ********************************************************  start with right
+        # this handles walk, run, run jump all in the right direction
+        if (keys[pg.K_RIGHT] or keys[pg.K_d]):
+            # if here and not holding run then you want to walk
+            if not keys[pg.K_KP_PERIOD]:
+                self.walking = True
+                self.running = False
+                # this changes the delay to walk speed
+                if self.delay != 100: self.delay = 100
+                # set direction
+                self.marios_direction = "right"
+                self.set_action(keys_dir[pg.K_RIGHT][0])
+            elif keys[pg.K_KP_PERIOD]:
+                # here you are wanting to run to the right
+                self.running = True
+                self.walking = False
+                 # this changes the animation speed
+                if self.delay != 50: self.delay = 50
+                # could probably make this happen no matter what case by putting below all this
+                if self.marios_direction != "right": self.marios_direction = "right"
+                self.set_action(keys_dir[pg.K_RIGHT][0])
+            elif keys[pg.K_KP_PERIOD] and keys[pg.K_KP0]:
+                # here youre running and jumping
+                self.running = True
+                self.walking = False
+                self.jumping = True
+                if self.delay != 50: self.delay = 50
+                if self.marios_direction != "right": self.marios_direction = "right"
+                self.set_action("jump_")
+        elif (keys[pg.K_LEFT] or keys[pg.K_a]):
+            # Now youre going ******************************************************* left
+            #  this handles walk, run, run jump all in the left direction
+            # walk
+            if not keys[pg.K_KP_PERIOD]:
+                self.walking = True
+                self.running = False
+                # this changes the delay to walk speed
+                if self.delay != 100: self.delay = 100
+                # set direction
+                self.marios_direction = "left"
+                self.set_action(keys_dir[pg.K_LEFT][0])
+            # run
+            elif keys[pg.K_KP_PERIOD]:
+                # here you are wanting to run to the left
+                self.running = True
+                self.walking = False
+                 # this changes the animation speed
+                if self.delay != 50: self.delay = 50
+                # could probably make this happen no matter what case by putting below all this
+                if self.marios_direction != "right": self.marios_direction = "left"
+                self.set_action(keys_dir[pg.K_LEFT][0])
+            # run, Jump
+            elif keys[pg.K_KP_PERIOD] and keys[pg.K_KP0]:
+                # here youre running and jumping
+                self.running = True
+                self.walking = False
+                self.jumping = True
+                if self.delay != 50: self.delay = 50
+                if self.marios_direction != "left": self.marios_direction = "left"
+                self.set_action("jump_")
+        elif keys[pg.K_s] or keys[pg.K_DOWN]:
+            # here youre pressing ****************************************************  *** down
             self.walking = False
-            self.set_action(keys_dir[pg.K_RIGHT][0])
-        elif (keys[pg.K_LEFT] or keys[pg.K_a]) and keys[pg.K_KP_PERIOD]:
-            # youre here running to the left
-            self.marios_direction = "left"
-            self.running = True
-            self.delay = 50
-            self.walking = False
-            self.set_action(keys_dir[pg.K_LEFT][0])
-        # ************************************************* END RUNNING ***************************
-        # ************************************************** WALKING ******************************
-        elif keys[pg.K_RIGHT] or keys[pg.K_d]:
-            # just walking here to the right
-            self.walking = True
-            self.delay = 100
             self.running = False
-            self.marios_direction = "right"
-            self.set_action(keys_dir[pg.K_RIGHT][0])
-        elif keys[pg.K_LEFT] or keys[pg.K_a] and not keys[pg.K_KP_PERIOD]:
-            # just walking left here
-            self.walking = True
-            self.delay = 100
-            self.running = False
-            self.marios_direction = "left"
-            self.set_action(keys_dir[pg.K_LEFT][0])
-
-        # ************************************************* END WALKING ***************************
-        # ************************************************* SQUATTING *****************************
-        if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.walking = False
-            self.jumping = False
-            self.running = False
+            self. jumping = False
+            # animation delay
+            if self.delay != 100: self.delay = 100
+            self.marios_direction = self.marios_direction
             self.set_action(keys_dir[pg.K_DOWN][0])
-        # ************************************************ END SQUATTING **************************
-        # ********************************************** JUMPING **********************************
-        if keys[pg.K_KP0]:
+        elif not ((keys[pg.K_RIGHT] and keys[pg.K_d]) and (keys[pg.K_LEFT] or keys[pg.K_a])):
+            # here you have released all direction buttons
+            self.walking = False
+            self.running = False
+            self.jumping = False
+            # animation delay
+            if self.delay != 100: self.delay = 100
+            self.marios_direction = self.marios_direction
+            self.set_action("still_")
+        
+        if keys[pg.K_KP_0]:
             self.jumping = True
             self.set_action("jump_")
-        # ******************************************* END JUMPING *********************************
+        elif not keys[pg.K_KP_0]:
+            self.jumping = False
+
+        print(f'walking: {self.walking}, running: {self.running}, jumping: {self.jumping}')
+        
+    #     # **************************************** RUNNING ***************************************
+    #     if (keys[pg.K_RIGHT] or keys[pg.K_d]) and keys[pg.K_KP_PERIOD]:
+    #         # youre running
+    #         # set the animation to the correct direction
+    #         self.marios_direction = "right"
+    #         self.running = True
+    #         # this changes the animation speed
+    #         if self.delay != 50: self.delay = 50
+    #         self.walking = False
+    #         self.set_action(keys_dir[pg.K_RIGHT][0])
+    #     elif (keys[pg.K_LEFT] or keys[pg.K_a]) and keys[pg.K_KP_PERIOD]:
+    #         # youre here running to the left
+    #         self.marios_direction = "left"
+    #         self.running = True
+    #         if self.delay != 50: self.delay = 50
+    #         self.walking = False
+    #         self.set_action(keys_dir[pg.K_LEFT][0])
+    #     # ************************************************* END RUNNING ***************************
+    #     # ************************************************** WALKING ******************************
+    #     elif keys[pg.K_RIGHT] or keys[pg.K_d]:
+    #         # just walking here to the right
+    #         self.walking = True
+    #         if self.delay != 100: self.delay = 100
+    #         self.running = False
+    #         self.marios_direction = "right"
+    #         self.set_action(keys_dir[pg.K_RIGHT][0])
+    #     elif keys[pg.K_LEFT] or keys[pg.K_a]:
+    #         # just walking left here
+    #         self.walking = True
+    #         if self.delay != 100: self.delay = 100
+    #         self.running = False
+    #         self.marios_direction = "left"
+    #         self.set_action(keys_dir[pg.K_LEFT][0])
+
+    #     # ************************************************* END WALKING ***************************
+    #     # ************************************************* SQUATTING *****************************
+    #     if keys[pg.K_DOWN] or keys[pg.K_s]:
+    #         self.walking = False
+    #         self.jumping = False
+    #         self.running = False
+    #         self.set_action(keys_dir[pg.K_DOWN][0])
+    #     # ************************************************ END SQUATTING **************************
+    #     # ********************************************** JUMPING **********************************
+    #     if keys[pg.K_KP0]:
+    #         self.jumping = True
+    #         self.set_action("jump_")
+    #     elif not keys[pg.K_KP0]:
+    #         self.jumping = False
+    #         self.set_action("still_")
+    #     # ******************************************* END JUMPING *********************************
             
-    # ************************************ USABLE MARIO ACTIONS ***********************************
-    def stop(self):
-        self.walking = False
-        self.running = False
-        self.jumping = False
-        self.velocity = 0
-        self.v = Vector()
-        self.set_action("still_")
+    # # ************************************ USABLE MARIO ACTIONS ***********************************
+    # def stop(self):
+    #     self.walking = False
+    #     self.running = False
+    #     self.jumping = False
+    #     self.velocity = 0
+    #     self.v = Vector()
+    #     self.set_action("still_")
 
     def shrink(self):
         self.mario_status = "small_mario"
@@ -326,6 +423,9 @@ class Mario(Sprite):
 
 
     def update(self):
+        walk_speed = self.settings.mario_walk_speed
+        run_speed = self.settings.mario_run_speed
+        jump_height = self.settings.mario_jump_height
         
         # **************************  CHECKING COLLISIONS HERE *******************************
         if self.game.ground.check_collisions(self):
@@ -333,50 +433,91 @@ class Mario(Sprite):
             self.posn.y = collisions[1] * 32 - self.rect.height
         elif self.game.blocks.check_collisions(self):
             collisions = self.game.blocks.check_collisions(self)
-            self.posn.y = collisions[1] * 25
+            self.stop()
+            # self.posn.y = collisions[1] * 25
         elif self.game.pipes.check_collisions(self):
             collisions = self.game.pipes.check_collisions(self)
-            print("hit a tube")
-            self.velocity = 0
-            self.stop()
-            
-        # *************************** END COLLISIONS *****************************************
-            
-        # this is where we check if he is still alive and update x and y pos
-        if self.walking and self.velocity < self.settings.mario_walk_speed:
-            # sets the direction if its left its negative if its right its positive
-            self.velocity += self.walking_acceleration
-        elif self.walking and self.velocity > self.settings.mario_walk_speed:
-            # here you were running and switched to a walk but still going run speed
-            # so slow down
-            self.velocity = self.settings.mario_walk_speed
-        elif not self.walking and not self.running and not self.jumping:
-            if self.velocity > 0:
-                self.velocity -= self.friction
-            elif self.velocity < 0:
-                self.velocity = 0
+            if self.v.x != 0:
                 self.v.x = 0
-                
-            # this is where deceleration would happen or maybe sliding
-        elif self.running and self.velocity < self.settings.mario_run_speed:
-            self.velocity += self.running_acceleration
-        elif self.jumping and self.deltay <= self.settings.mario_jump_height:
-            self.jump_velocity += self.jump_acceleration
-            self.deltay += self.jump_velocity
-        elif not self.jumping and self.deltay >= self.settings.mario_jump_height:
-            self.deltay -= self.settings.gravity
-            
-        self.v.x += self.velocity if self.marios_direction == "right" else -self.velocity
 
-        self.posn.y -= self.jump_velocity if self.jumping else -self.jump_velocity
-        self.posn += self.v
-        print(f'sending {self.posn.y} to be clamped')
+                
+                
+        # *************************** END COLLISIONS *****************************************
+
+        # **************************** MARIO GETS MOVED IN HERE *******************************
+        # self.v is the vector thats being added to his position to move mario around
+        # so if youre walking slower than top speed go a little faster
+        if self.walking and self.velocity.x < walk_speed:
+            self.velocity.x += self.walking_acceleration
+        elif self.walking and self.velocity.x >= walk_speed:
+            # this should be run to walk
+            self.velocity.x = walk_speed
+        if not self.walking and not self.running and self.velocity.x > 0:
+            self.velocity.x -= self.friction
+        elif not self.walking and not self.running and self.velocity.x < 0:
+            self.velocity.x = 0
+        
+        if self.running and self.velocity.x < run_speed:
+            self.velocity.x += self.running_acceleration
+        elif self.running and self.velocity.x >= run_speed:
+            self.velocity.x = run_speed
+        
+        if self.jumping and self.deltay < jump_height:
+            self.velocity.y += self.jump_acceleration
+            self.deltay += 1
+        elif self.jumping and self.deltay >= jump_height:
+            # time to start falling
+            self.jumping = False
+            self.coming_down = True
+        if self.coming_down and self.deltay > 0:
+            self.jumping = False
+            self.deltay -= 1
+        elif self.coming_down and self.deltay < 0:
+            self.jumping = False
+            self.coming_down = False
+            self.deltay = 0
+        print(f'jumping: {self.jumping}, velocity in y axis: {self.velocity.y}, coming down: {self.coming_down}')
+            
+
+        # elif self.running and self.v.x < self.settings.mario_run_speed and self.v.x >= 0:
+        #     self.velocity += self.running_acceleration
+        # elif self.running and self.v.x > self.settings.mario_run_speed:
+        #     self.v.x = self.settings.mario_run_speed
+        # elif self.running and self.v.x < 0 and -(self.v.x) < self.settings.mario_run_speed:
+        # # you should be Running left here
+        #     self.velocity += self.running_acceleration
+            
+        # elif self.jumping and self.deltay <= self.settings.mario_jump_height:
+        #     self.jump_velocity += self.jump_acceleration
+        #     self.deltay += 1
+        #     print(self.deltay)
+        # elif self.jumping and self.deltay >= self.settings.mario_jump_height:
+        #     self.jumping = False
+        #     self.jump_velocity = 0
+        # elif not self.jumping and self.deltay >= self.settings.mario_jump_height:
+        #     self.deltay -= 1
+            
+        self.game.ground.layer_vel = -self.velocity if self.marios_direction == "right" else self.velocity
+        self.game.blocks.layer_vel =  -self.velocity if self.marios_direction == "right" else self.velocity
+        self.game.pipes.layer_vel = -self.velocity if self.marios_direction == "right" else self.velocity
+        self.game.grass.layer_vel = -self.velocity if self.marios_direction == "right" else self.velocity
+        self.game.clouds.layer_vel = -self.velocity if self.marios_direction == "right" else self.velocity
+
+        print(f'velocity is: {self.velocity}')
+        # self.posn is the vector that moves mario
+        # velocity is the number we change to move him
+        self.posn.y -= self.jump_velocity if self.coming_down else -self.jump_velocity
+        self.posn += self.velocity if self.marios_direction == "right" else -self.velocity
+        
+        # here mario is clamped to the window. that is where the halfway limitiation is planted
+        # also where the actual ground is set ie the bottom of the window
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
+        # this is where we blit mario
         self.draw()
 
     # this binds the vector to the image rect. if other objs need it ill put it in a class
+    # this is where mario is bound to the center of the screen, also the ground is set here.
     def clamp(self, posn, rect, settings):
-        print(f'clamping: {posn.y}')
         left, top = posn.x, posn.y
         width, height = rect.width, rect.height
         left = max(0, min(left, settings.window_size[0] / 2 - width))
@@ -387,7 +528,6 @@ class Mario(Sprite):
             top = max(0, min(top, settings.window_size[1] - height))
         else: 
             top = max(0, min(top, settings.window_size[1] - height))
-        print(f'Top ended up: {top}')
         return Vector(x=left, y=top), pg.Rect(left, top, width, height)
 
     def draw(self):
