@@ -230,7 +230,7 @@ class Mario(Sprite):
     def move_mario(self, keys):
         
         # this list translates keys into animation actions
-        keys_dir = {pg.K_KP0: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
+        keys_dir = {pg.K_SPACE: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
         pg.K_s: ["squatting_", "still_"], pg.K_DOWN: ["squatting_", "still_"],
         pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
         pg.K_d: ["right", "still_"],pg.K_RIGHT: ["right", "still_", "jump_"]}
@@ -277,9 +277,15 @@ class Mario(Sprite):
             self.set_action(keys_dir[pg.K_DOWN][0])
         # ************************************************ END SQUATTING **************************
         # ********************************************** JUMPING **********************************
-        if keys[pg.K_KP0]:
+        if keys[pg.K_SPACE]:
             self.jumping = True
             self.set_action("jump_")
+
+            # Play the jump sound depending on if he is small or not
+            if self.mario_status == "small_mario":
+                self.game.sound.play_sound("mario_jump_small")
+            elif self.mario_status == "large_mario" or self.mario_status == "fire_mario":
+                self.game.sound.play_sound("mario_jump_super")
         # ******************************************* END JUMPING *********************************
             
     # ************************************ USABLE MARIO ACTIONS ***********************************
@@ -335,9 +341,16 @@ class Mario(Sprite):
             collisions = self.game.blocks.check_collisions(self)
             self.posn.y = collisions[0].y
         elif self.game.pipes.check_collisions(self):
-            collisions = self.game.pipes.check_collisions(self)
-            print("hit a tube")
+            pipe_collisions = self.game.pipes.check_collisions(self)
             self.velocity = 0
+            if pipe_collisions:
+                for tile in pipe_collisions:
+                    # if mario is moving left/right and collides, can assume that he is walking into the pipe
+                    # so move his position out of the pipe
+                    if self.v.x > 0:
+                        self.rect.right = tile.left
+                    if self.v.x < 0:
+                        self.rect.left = tile.right
             self.stop()
             
         # *************************** END COLLISIONS *****************************************

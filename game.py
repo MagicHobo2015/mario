@@ -6,7 +6,7 @@
 #         \____|__  (____  /__|  |__|\____/                                 #
 #                 \/     \/                                                 #
 #                                                                           #
-# By: Joshua Land                                                           #
+# By: Joshua Land and Trung Nguyen                                          #
 # Description: This is the main driver for the game                         #
 #---------------------------------------------------------------------------#
 
@@ -68,7 +68,7 @@ class Game():
         self.clouds = Clouds(game=self, layer=clouds)
 
         # Create group of Goombas
-        self.goombas = Goomba(game=self)
+        # self.goombas = Goomba(game=self)
 
         # Create the player
         self.mario = Mario(self)
@@ -83,7 +83,8 @@ class Game():
           
         for event in pg.event.get():
             keys = pg.key.get_pressed()
-            self.goombas.get_key_input(keys)
+            self.mario.move_mario(keys)
+            # self.goombas.get_key_input(keys)
             if event.type == pg.QUIT:
                 # if you got here its time to shut down
                 self.game_over()
@@ -98,8 +99,7 @@ class Game():
                     self.clouds.layer_vel = Vector()
             else:
                 
-                if keys[pg.K_KP0]:
-                    self.mario.move_mario(keys)
+                # if keys[pg.K_KP0]:
                     
                 if keys[pg.K_LEFT] or keys[pg.K_RIGHT] or keys[pg.K_a] or keys[pg.K_d]:
                     self.mario.move_mario(keys)
@@ -139,7 +139,7 @@ class Game():
         self.pipes.update()
         self.grass.update()
         self.clouds.update()
-        self.goombas.update()
+        # self.goombas.update()
         self.mario.update()
         pg.display.flip()
 

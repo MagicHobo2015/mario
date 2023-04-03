@@ -52,6 +52,7 @@ class Goomba(pg.sprite.Sprite):
                     self.rect.left = tile.right
                 
 
+        self.apply_gravity()
         if ground_collisions:
             for tile in ground_collisions:
                 # if goomba is above/below a block
@@ -64,8 +65,7 @@ class Goomba(pg.sprite.Sprite):
 
     def update(self) -> None:
         self.rect.x += self.direction.x * self.speed
-        self.apply_gravity()
-        # self.handle_collisions()
+        self.handle_collisions()
         self.draw()
 
     def draw(self) -> None:
