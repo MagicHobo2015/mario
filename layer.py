@@ -16,18 +16,35 @@ class Layer():
 
         print(f"{self.layer} loaded")
 
-    def check_collisions(self, sprite: pg.sprite.Sprite):
+    def check_collisions(self, sprite: pg.sprite.Sprite) -> list[pg.Rect]:
+        all_collisions = []
         # Check for collisions with all tiles in the layer
         for x, y, tile in self.layer.tiles():
+            collision_side = None
             # get_clip() returns a pg.Rect object
             tile_rect = tile.get_clip()
             tile_rect.x = x * self.tile_size + self.layer.offsetx
             tile_rect.y = y * self.tile_size + self.layer.offsety
             if sprite.rect.colliderect(tile_rect):
                 print(f"Collision at {x=} {y=} in layer {self.layer.name}")
-                return [x, y, self.layer.name]
-
                 
+                # Check which side of the tile the sprite is colliding with
+                if sprite.rect.x > tile_rect.x:
+                    # Left side of the tile
+                    collision_side = "left"
+                elif sprite.rect.x < tile_rect.x:
+                    # Right side of the tile
+                    collision_side = "right"
+                elif sprite.rect.y > tile_rect.y:
+                    # Top side of the tile
+                    collision_side = "top"
+                elif sprite.rect.y < tile_rect.y:
+                    # Bottom side of the tile
+                    collision_side = "bottom"
+
+                all_collisions.append(tile_rect)
+        return all_collisions
+                    
 
 
     def update(self):

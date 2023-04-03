@@ -20,12 +20,14 @@ from settings import Settings
 from vector import Vector
 from mario import Mario
 from vector import Vector
+from sound import Sound
 from spriteSheet import SpriteSheet
 from ground import Ground
 from blocks import Blocks
 from pipe import Pipes
 from grass import Grass
 from clouds import Clouds
+from goomba import Goomba
 
 class Game():
     def __init__(self):
@@ -35,6 +37,10 @@ class Game():
         pg.display.set_caption("Mario!")
         # helps limit frames per second
         self.clock = pg.time.Clock()
+        # Use relative path to get the path to the overworld theme
+        # the folder "sounds" is in the assets/sounds folder
+        bg_music = os.path.join(os.path.dirname(__file__), "assets", "sounds", "overworld_bgm.mp3")
+        self.sound = Sound(bg_music=bg_music)
         
         # Get the path to the map.tmx file and store it in tmx_data
         # This store all the data for the entire level, including all the blocks and their coordinates
@@ -61,6 +67,10 @@ class Game():
         clouds = tmx_data.get_layer_by_name("Clouds")
         self.clouds = Clouds(game=self, layer=clouds)
 
+        # Create group of Goombas
+        self.goombas = Goomba(game=self)
+
+        # Create the player
         self.mario = Mario(self)
         
     def check_events(self):
@@ -72,6 +82,8 @@ class Game():
             pg.K_KP_PERIOD: Vector(0,0)}
           
         for event in pg.event.get():
+            keys = pg.key.get_pressed()
+            self.goombas.get_key_input(keys)
             if event.type == pg.QUIT:
                 # if you got here its time to shut down
                 self.game_over()
@@ -85,7 +97,7 @@ class Game():
                     self.grass.layer_vel = Vector()
                     self.clouds.layer_vel = Vector()
             else:
-                keys = pg.key.get_pressed()
+                
                 if keys[pg.K_KP0]:
                     self.mario.move_mario(keys)
                     
@@ -98,18 +110,21 @@ class Game():
 
                     # handling movement of level tiles
                     # multiply by the x value of the Vector of the opposite direction of the key pressed
-                    # layer_vel should only take the x value of the Vector from keys_dir
+                    # layer_vel should only take the x value of the Veactor from keys_dir
                     self.ground.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
                     self.blocks.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
                     self.pipes.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
                     self.grass.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
                     self.clouds.layer_vel = self.settings.mario_speed * keys_dir[key] * -1
-
+            
 
     def game_over(self):
         # run shutdown animation
         #shutdown everything
         self.running = False
+
+        # Play game over sound
+        self.sound.gameover()
         # clean up pygame
         pg.quit()
         sys.exit()
@@ -117,17 +132,23 @@ class Game():
         
     def draw(self):
         # to clear the screen
-        self.screen.fill((0, 0, 0))
+        # Set the background to blue
+        self.screen.fill(self.settings.bg_color)
         self.ground.update()
         self.blocks.update()
         self.pipes.update()
         self.grass.update()
         self.clouds.update()
+        self.goombas.update()
         self.mario.update()
         pg.display.flip()
 
     def play(self):
         # Main loop for the game happens here, for now
+        
+        # Start the background music
+        self.sound.play_bg()
+
         while self.running:
             # check events for quit
             self.check_events()

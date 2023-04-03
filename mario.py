@@ -230,7 +230,7 @@ class Mario(Sprite):
     def move_mario(self, keys):
         
         # this list translates keys into animation actions
-        keys_dir = {pg.K_KP0: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
+        keys_dir = {pg.K_SPACE: ["jump_", "still_"], pg.K_UP: ["jump_", "still_"],
         pg.K_s: ["squatting_", "still_"], pg.K_DOWN: ["squatting_", "still_"],
         pg.K_a: ["left", "still_"], pg.K_LEFT: ["left", "still_"],
         pg.K_d: ["right", "still_"],pg.K_RIGHT: ["right", "still_", "jump_"]}
@@ -280,6 +280,10 @@ class Mario(Sprite):
         if keys[pg.K_KP0]:
             self.jumping = True
             self.set_action("jump_")
+            if self.mario_status == "small_mario":
+                self.game.sound.play_sound("mario_jump_small")
+            else:
+                self.game.sound.play_sound("mario_jump_super")
         # ******************************************* END JUMPING *********************************
             
     # ************************************ USABLE MARIO ACTIONS ***********************************
@@ -330,10 +334,10 @@ class Mario(Sprite):
         # **************************  CHECKING COLLISIONS HERE *******************************
         if self.game.ground.check_collisions(self):
             collisions = self.game.ground.check_collisions(self)
-            self.posn.y = collisions[1] * 32 - self.rect.height
+            self.posn.y = collisions[0][1] * 32 - self.rect.height
         elif self.game.blocks.check_collisions(self):
             collisions = self.game.blocks.check_collisions(self)
-            self.posn.y = collisions[1] * 25
+            self.posn.y = collisions[0][1] * 25
         elif self.game.pipes.check_collisions(self):
             collisions = self.game.pipes.check_collisions(self)
             print("hit a tube")
@@ -370,13 +374,13 @@ class Mario(Sprite):
 
         self.posn.y -= self.jump_velocity if self.jumping else -self.jump_velocity
         self.posn += self.v
-        print(f'sending {self.posn.y} to be clamped')
+        # print(f'sending {self.posn.y} to be clamped')
         self.posn, self.rect = self.clamp( self.posn, self.rect, self.settings)
         self.draw()
 
     # this binds the vector to the image rect. if other objs need it ill put it in a class
     def clamp(self, posn, rect, settings):
-        print(f'clamping: {posn.y}')
+        # print(f'clamping: {posn.y}')
         left, top = posn.x, posn.y
         width, height = rect.width, rect.height
         left = max(0, min(left, settings.window_size[0] / 2 - width))
@@ -387,7 +391,7 @@ class Mario(Sprite):
             top = max(0, min(top, settings.window_size[1] - height))
         else: 
             top = max(0, min(top, settings.window_size[1] - height))
-        print(f'Top ended up: {top}')
+        # print(f'Top ended up: {top}')
         return Vector(x=left, y=top), pg.Rect(left, top, width, height)
 
     def draw(self):

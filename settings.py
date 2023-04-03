@@ -1,11 +1,12 @@
 class Settings():
     def __init__(self):
         self.window_size = [1200, 800]
+        self.bg_color = (137, 207, 240)
         self.tile_size = 32
         
         # mario stats
         # this is here for level movement
-        # TODO: tie level movement to mario's
+        
         self.mario_speed = 2
         self.mario_walk_speed = .05
         self.mario_run_speed = .5
