@@ -71,7 +71,7 @@ class Mario(Sprite):
         self.v = Vector()
         self.posn = Vector()
         self.posn.x = float(self.rect.x)
-        self.posn.y = 452.0
+        self.posn.y = 0
         self.rect.centery = self.posn.y
         self.timer = Timer(self.images, 0, delay=500, is_loop=True)
 
@@ -277,7 +277,7 @@ class Mario(Sprite):
             self.set_action(keys_dir[pg.K_DOWN][0])
         # ************************************************ END SQUATTING **************************
         # ********************************************** JUMPING **********************************
-        if keys[pg.K_KP0]:
+        if keys[pg.K_SPACE]:
             self.jumping = True
             self.set_action("jump_")
             if self.mario_status == "small_mario":
